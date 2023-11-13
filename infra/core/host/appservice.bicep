@@ -8,6 +8,7 @@ param applicationInsightsName string = ''
 param appServicePlanId string
 param keyVaultName string = ''
 param managedIdentity bool = !empty(keyVaultName)
+param applicationId string = '0ab9d7ff-bca5-4fc0-a1ba-86ceb00c63fa'
 
 // Runtime Properties
 @allowed([
@@ -111,6 +112,33 @@ resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' existing = if (!(empty(
 
 resource applicationInsights 'Microsoft.Insights/components@2020-02-02' existing = if (!empty(applicationInsightsName)) {
   name: applicationInsightsName
+}
+
+resource symbolicname 'Microsoft.Web/sites/config@2022-09-01' = {
+  name: 'authsettingsV2'
+  kind: 'string'
+  parent: appService
+  properties: {
+    platform: {
+      enabled: true
+      runtimeVersion: '~1'
+    }
+    globalValidation: {
+      requireAuthentication: true
+      unauthenticatedClientAction: 'RedirectToLoginPage'
+      redirectToProvider: 'azureactivedirectory'
+    }
+    identityProviders: {
+      azureActiveDirectory: {
+        enabled: true
+        registration: {
+          openIdIssuer: 'https://sts.windows.net/${subscription().tenantId}/v2.0'
+          clientId: applicationId
+          clientSecretSettingName: 'MICROSOFT_PROVIDER_AUTHENTICATION_SECRET'
+        }
+      }
+    }
+  }
 }
 
 output identityPrincipalId string = managedIdentity ? appService.identity.principalId : ''
