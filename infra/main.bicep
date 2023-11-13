@@ -82,6 +82,9 @@ param principalId string = ''
 @description('Use Application Insights for monitoring and performance tracing')
 param useApplicationInsights bool = false
 
+@secure()
+param clientAppSecret string = ''
+
 var abbrs = loadJsonContent('abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -180,6 +183,7 @@ module backend 'core/host/appservice.bicep' = {
       AZURE_TENANT_ID: tenant().tenantId
       // CORS support, for frontends on other hosts
       ALLOWED_ORIGIN: allowedOrigin
+      MICROSOFT_PROVIDER_AUTHENTICATION_SECRET: clientAppSecret
     }
   }
 }
