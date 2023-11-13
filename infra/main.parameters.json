@@ -97,6 +97,6 @@
     },
     "clientAppSecret": {
       "value": "${AZURE_CLIENT_APP_SECRET}"
-    },    
+    }
   }
 }
